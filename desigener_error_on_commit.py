@@ -23,7 +23,9 @@ class Ui_error_while_commiting(object):
         self.label.setFont(font)
         self.label.setObjectName("label")
         self.error_log = QtWidgets.QLabel(error_while_commiting)
-        self.error_log.setGeometry(QtCore.QRect(50, 80, 831, 531))
+        self.error_log.setGeometry(QtCore.QRect(50, 80, 751, 531))
+        self.error_log.setAcceptDrops(True)
+        self.error_log.setTextFormat(QtCore.Qt.TextFormat.PlainText)
         self.error_log.setAlignment(QtCore.Qt.AlignmentFlag.AlignLeading|QtCore.Qt.AlignmentFlag.AlignLeft|QtCore.Qt.AlignmentFlag.AlignTop)
         self.error_log.setObjectName("error_log")
 

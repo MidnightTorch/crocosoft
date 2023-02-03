@@ -1,12 +1,20 @@
+import os
+
 from PyQt6.QtGui import QPixmap
 from PyQt6.QtWidgets import QApplication, QMainWindow, QFileDialog, QWidget
 from designer import Ui_MainWindow
 from json import dumps
-from dbconnector import push_to_db, check_exists
+from dbconnector import push_to_db, check_exists, delete_rows_by_path_to_file
 from designer_confirmation_window import Ui_confirmation_window
 from designer_successful_commit import Ui_success_window
 from desigener_error_on_commit import Ui_error_while_commiting
+from designer_multiple_description_warning import Ui_Form
 
+class MultipleDescriptionsError(QMainWindow):
+    def __init__(self):
+        super().__init__()
+        self.ui = Ui_Form()
+        self.ui.setupUi(self)
 
 class ErrorOnCommit(QMainWindow):
     def __init__(self):
@@ -44,31 +52,30 @@ class MainWindow(QMainWindow):
 
         self.ui.button_browser.pressed.connect(self.browser_invoker)
         self.ui.confim_button.pressed.connect(self.confirm_text)
-
+        self.ui.button_next.pressed.connect(self.next_image)
+        self.ui.button_previous.pressed.connect(self.previous_image)
+        self.ui.button_check_described.pressed.connect(self.check_multiple_description)
 
         ####setting up variables
-        #curr_img - path to currently selected image
 
-
-        self.curr_img = ''
+        self.path_to_curr_img = ''
         self.curr_year = ''
         self.curr_publication = ''
         self.curr_screen = ''
-
+        self.dir_tree = {}
+        self.create_tree_of_screens()
 
     def browser_invoker(self):
         folder_path = QFileDialog(directory='screens')
-        self.curr_img = folder_path.getOpenFileName()[0]
-        if self.curr_img:
-            self.draw_image()
-            self.ui.name_of_file.setText(self.curr_img)
-        else:
-            print('No image specified')
+        self.path_to_curr_img = folder_path.getOpenFileName()[0]
+        self.get_img_props()
+        self.draw_image()
+
 
 
     def draw_image(self):
-        self.ui.image_dispayer.setPixmap(QPixmap(self.curr_img))
-        self.get_img_props()
+        path_via_screens = 'screens' + '/' + self.curr_year + '/' + self.curr_publication + '/' + self.curr_screen
+        self.ui.image_dispayer.setPixmap(QPixmap(path_via_screens))
         self.ui.lineEdit_year.setText(self.curr_year)
         self.ui.lineEdit_publication.setText(self.curr_publication)
         self.ui.lineEdit_id.setText(self.curr_screen)
@@ -76,39 +83,38 @@ class MainWindow(QMainWindow):
 
     def get_img_props(self):
     #### symbol is to be changed for Windows Desktop
-        path_to_file = self.curr_img.split('/')
+        path_to_file = self.path_to_curr_img.split('/')
         self.curr_year = path_to_file[6]
         self.curr_publication = path_to_file[7]
-        self.curr_screen = path_to_file[8].split('.')[0]
+        self.curr_screen = path_to_file[8]
 
 
     def commit(self):
-    #############doesnt work on Windows
+    #############doesn`t work on Windows
         json_description = self.translate_to_json()
         path_of_img = 'screens' + '/' + self.curr_year + '/' + self.curr_publication + '/' + self.curr_screen
+
+        ### try-except needs to be redesigned
         try:
             push_to_db(json_description, path_of_img)
-            self.success = SuccessfulCommitWindow()
-            self.success.show()
         except Exception as e:
             print(e)
             self.error_win = ErrorOnCommit()
             self.error_win.ui.error_log.setText(str(e))
             self.error_win.show()
-
-
-
-        self.conf_win.close()
-
+        else:
+            self.success = SuccessfulCommitWindow()
+            self.success.show()
+        finally:
+            self.conf_win.close()
 
     def confirm_text(self):
         self.conf_win = ConfirmationWindow()
-        self.conf_win.show()
         output = self.translate_to_json().replace(',', '\n')
         self.conf_win.ui.markup_displayer.setText(output)
-
         self.conf_win.ui.commit_button.pressed.connect(self.commit)
-
+        self.conf_win.ui.redo_button.pressed.connect(self.conf_win.close)
+        self.conf_win.show()
 
     def translate_to_json(self):
         json_dict = {
@@ -128,104 +134,113 @@ class MainWindow(QMainWindow):
 
         return dumps(json_dict)
 
-    #     try:
-    #         self.setWindowIcon(QIcon('croco_icon.png'))
-    #         self.setWindowTitle('CROCOSOFT')
-    #         self.setStyleSheet('background-color: grey')
-    #         self.setGeometry(1000, 250, 800, 600)
-    #
-    #         self.lbl = QLabel('Category')
-    #         self.input = QLineEdit()
-    #         self.btn = QPushButton('Enter image')
-    #         self.btn2 = QPushButton('Next image')
-    #         self.confirm_btn = QPushButton('Confirm input')
-    #         # self.btn3 = QPushButton('Previous image')
-    #         self.imdrawer = QLabel('Images drawn here')
-    #
-    #         ####### configuring input
-    #         self.input.setText('1922')
-    #
-    #
-    #         ########### current image and dir props
-    #         self.currimg = ''
-    #         self.curr_year = ''
-    #         self.curr_publication = ''
-    #         self.curr_screen = ''
-    #
-    #         ####### connecting widgets
-    #         self.btn.pressed.connect(self.dialog_invoker)
-    #         self.btn2.pressed.connect(self.next_img)
-    #         self.confirm_btn.pressed.connect(self.describe_img)
-    #         # self.btn3.pressed.connect(self.previous_img)
-    #
-    #         #######
-    #         #### adding to layout
-    #
-    #         layout = QVBoxLayout()
-    #         layout.addWidget(self.input)
-    #         layout.addWidget(self.lbl)
-    #         layout.addWidget(self.confirm_btn)
-    #         layout.addWidget(self.btn)
-    #         layout.addWidget(self.btn2)
-    #         # layout.addWidget(self.btn3)
-    #         layout.addWidget(self.imdrawer)
-    #
-    #         container = QWidget()
-    #         container.setLayout(layout)
-    #         self.setCentralWidget(container)
-    #
-    #     except Exception as init_exception:
-    #         print(init_exception)
-    #
-    #
+    def list_existing_descriptions(self):
+        curr_path = 'screens' + '/' + self.curr_year + '/' + self.curr_publication + '/' + self.curr_screen
+        self.win = ErrorOnCommit()
+        self.win.ui.label.setText('List of existing descriptions in the db:')
+        try:
+            str_of_descriptions = str(check_exists(curr_path))
+        except (Exception) as some_db_exception:
+            self.win.ui.error_log.setText(some_db_exception)
+            self.win.ui.error_log.setWordWrap(True)
+            self.win.show()
+        else:
+            self.win.ui.error_log.setText(str_of_descriptions)
+            self.win.ui.error_log.setWordWrap(True)
+            self.win.show()
 
+    def check_multiple_description(self):
+        curr_path = 'screens' + '/' + self.curr_year + '/' + self.curr_publication + '/' + self.curr_screen
+        if len(check_exists(curr_path)) != 0:
+            self.multiple_descriptions_error_win = MultipleDescriptionsError()
+            self.multiple_descriptions_error_win.ui.discard_all_descriptions.pressed.connect(lambda: delete_rows_by_path_to_file(curr_path))
+            self.multiple_descriptions_error_win.ui.check_descriptions.pressed.connect(self.list_existing_descriptions)
+            self.multiple_descriptions_error_win.ui.quit_warning_window.pressed.connect(
+                self.multiple_descriptions_error_win.close)
+            self.multiple_descriptions_error_win.show()
 
-    #
-    # def next_img(self):
-    #     path_to_current_directory = 'screens' + '/' + self.curr_year + '/' + self.curr_publication
-    #     path_to_current_year_directory = 'screens' + '/' + self.curr_year
-    #     path_screens = 'screens'
-    #     list_of_screens_in_current_directory = sorted(os.listdir(path_to_current_directory))
-    #     list_of_publication_in_current_year_directory = sorted(os.listdir(path_to_current_year_directory))
-    #     list_of_years = sorted(os.listdir(path_screens))
-    #
-    #     result_path = '/home/torch/PycharmProjects/pythonProject1/screens'
-    #
-    #     if self.curr_screen != list_of_screens_in_current_directory[-1]:
-    #         inx_of_img = list_of_screens_in_current_directory.index(self.curr_screen) + 1
-    #         self.curr_screen = list_of_screens_in_current_directory[inx_of_img]
-    #
-    #     elif self.curr_publication != list_of_publication_in_current_year_directory[-1]:
-    #         inx_of_publication = list_of_publication_in_current_year_directory.index(self.curr_publication) + 1
-    #         self.curr_publication = list_of_publication_in_current_year_directory[inx_of_publication]
-    #         if os.listdir('screens' + '/' + self.curr_year + '/' + self.curr_publication) != '':
-    #             self.curr_screen = sorted(os.listdir('screens' + '/' + self.curr_year + '/' + self.curr_publication))[0]
-    #         else:
-    #             self.dialog_invoker()
-    #
-    #     elif self.curr_year != list_of_years[-1]:
-    #         inx_of_year = list_of_years.index(self.curr_year) + 1
-    #         self.curr_year = list_of_years[inx_of_year]
-    #         if os.listdir('screens' + '/' + self.curr_year + '/') != '':
-    #             self.curr_publication = sorted(os.listdir('screens' + '/' + self.curr_year))[0]
-    #
-    #         else:
-    #             self.dialog_invoker()
-    #
-    #     try:
-    #         self.currimg = result_path + '/' + self.curr_year + '/' + self.curr_publication + '/' + self.curr_screen
-    #         self.draw_image()
-    #     except Exception as e:
-    #         print(e)
-    #
-    #
-    # def describe_img(self):
-    #     print(self.input.text())
+        else:
+            self.success = SuccessfulCommitWindow()
+            self.success.ui.label.setText('NO DESCRIPTIONS FOUND, YOU CAN PROCEED')
+            self.success.setWindowTitle('NO DESCRIPTIONS')
+            self.success.show()
 
+    def next_image(self):
+        current_publication_list = sorted(self.dir_tree[f'{self.curr_year}'][f'{self.curr_publication}'])
+        current_year_list = sorted(list(self.dir_tree[f'{self.curr_year}'].keys()))
+        list_of_years = sorted(list(self.dir_tree.keys()))
+
+        ### case needed next_image
+        if self.curr_screen != current_publication_list[-1]:
+            inx_of_current_screen = current_publication_list.index(self.curr_screen)
+            self.curr_screen = current_publication_list[inx_of_current_screen + 1]
+            self.draw_image()
+
+        ### case current screen is the last one in the publication
+        elif self.curr_screen == current_publication_list[-1] and self.curr_publication != current_year_list[-1]:
+            inx_of_current_publication = current_year_list.index(self.curr_publication)
+            self.curr_publication = current_year_list[inx_of_current_publication + 1]
+            new_publication_list = sorted(self.dir_tree[f'{self.curr_year}'][f'{self.curr_publication}'])
+            self.curr_screen = new_publication_list[0]
+            self.draw_image()
+
+        ### case need to change year
+        elif self.curr_screen == current_publication_list[-1] and self.curr_publication == current_year_list[-1] and \
+                list_of_years[-1] != self.curr_year:
+            inx_current_year = list_of_years.index(self.curr_year)
+            self.curr_year = list_of_years[inx_current_year + 1]
+            self.curr_publication = sorted(self.dir_tree[f'{self.curr_year}'])[0]
+            self.curr_screen = sorted(self.dir_tree[f'{self.curr_year}'][f'{self.curr_publication}'])[0]
+            self.draw_image()
+
+        ### common warinig block
+        else:
+            print("Something went wrong")
+
+    def previous_image(self):
+        current_publication_list = sorted(self.dir_tree[f'{self.curr_year}'][f'{self.curr_publication}'])
+        current_year_list = sorted(list(self.dir_tree[f'{self.curr_year}'].keys()))
+        list_of_years = sorted(list(self.dir_tree.keys()))
+
+        ### case needed rpevious image
+        if self.curr_screen != current_publication_list[0]:
+            inx_of_current_screen = current_publication_list.index(self.curr_screen)
+            self.curr_screen = current_publication_list[inx_of_current_screen - 1]
+            self.draw_image()
+
+        ### case current screen is the first one in the publication
+        elif self.curr_screen == current_publication_list[0] and self.curr_publication != current_year_list[0]:
+            inx_of_current_publication = current_year_list.index(self.curr_publication)
+            self.curr_publication = current_year_list[inx_of_current_publication - 1]
+            new_publication_list = sorted(self.dir_tree[f'{self.curr_year}'][f'{self.curr_publication}'])
+            self.curr_screen = new_publication_list[-1]
+            self.draw_image()
+
+        ### case need to change year
+        elif self.curr_screen == current_publication_list[0] and self.curr_publication == current_year_list[0] and \
+                list_of_years[0] != self.curr_year:
+            inx_current_year = list_of_years.index(self.curr_year)
+            self.curr_year = list_of_years[inx_current_year - 1]
+            self.curr_publication = sorted(self.dir_tree[f'{self.curr_year}'])[-1]
+            self.curr_screen = sorted(self.dir_tree[f'{self.curr_year}'][f'{self.curr_publication}'])[-1]
+            self.draw_image()
+
+        ### common warinig block
+        else:
+            print("Something went wrong")
+
+    def create_tree_of_screens(self):
+        for year in os.listdir('screens'):
+            self.dir_tree[f'{year}'] = {}
+            for publication in os.listdir(f'screens/{year}'):
+                for screen in os.listdir(f'screens/{year}/{publication}'):
+                    if f'{publication}' in self.dir_tree[f'{year}'].keys():
+                        self.dir_tree[f'{year}'][f'{publication}'].append(screen)
+                    else:
+                        self.dir_tree[f'{year}'][f'{publication}'] = [screen]
 
 
 app = QApplication([])
 window = MainWindow()
 window.show()
 app.exec()
-

@@ -27,6 +27,7 @@ def set_topic():
             break
     print(f'Year set to {year}, publication set to {publication}\n')
 
+
 set_topic()
 
 # Лютое колесо - нужно зарефакторить
@@ -35,7 +36,6 @@ def screenshot_mode():
         for event in events:
             if type(event) == pynput.mouse.Events.Click:
                 if event.button == pynput.mouse.Button.left:
-                    print('Value returned')
                     return pg.position()
 
 def create_screenshot(first, second, width, height):
@@ -55,6 +55,8 @@ def create_screenshot(first, second, width, height):
     if first[0] < second[0]:
         pg.screenshot(full_name, (first[0], first[1], abs(second[0] - first[0]), abs(second[1] - first[1])))
 
+    print(f'Screenshot saved at {full_name}')
+
 
 
 
@@ -63,10 +65,8 @@ def on_activate():
     first = screenshot_mode()
     time.sleep(1)
     second = screenshot_mode()
-    print('First val: {}, second val: {}'.format(first, second))
     width = abs(first[0] - second[0])
     height = abs(first[1] - second[1])
-    print(width, height)
     create_screenshot(first, second, width, height)
 
 
