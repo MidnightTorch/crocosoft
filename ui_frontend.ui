@@ -526,7 +526,7 @@
      </rect>
     </property>
     <property name="text">
-     <string>enlightment</string>
+     <string>enlightenment</string>
     </property>
    </widget>
    <widget class="QCheckBox" name="checkBox_minorities">

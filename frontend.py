@@ -116,6 +116,10 @@ class MainWindow(QMainWindow):
         self.conf_win.ui.redo_button.pressed.connect(self.conf_win.close)
         self.conf_win.show()
 
+    def ui_val_to_bool(self, val):
+        if val == 2: return True
+        if val == 0: return False
+
     def translate_to_json(self):
         json_dict = {
             "year": self.ui.lineEdit_year.text(),
@@ -125,11 +129,20 @@ class MainWindow(QMainWindow):
             "personality": self.ui.lineEdit_personality.text().split(','),
             "country": self.ui.lineEdit_country.text().split(','),
             "topic": self.ui.lineEdit_topic.text(),
-            "anciene_regime": self.ui.checkBox_ancine_regime.checkState().value,
-            "swastic": self.ui.checkBox_swastic.checkState().value,
-            "historical": self.ui.checkBox_historical.checkState().value,
-            "religion": self.ui.checkBox_religion.checkState().value,
-            "workers and peseants": self.ui.checkBox_workers_and_peseants.checkState().value
+            "anciene_regime": self.ui_val_to_bool(self.ui.checkBox_ancine_regime.checkState().value),
+            "swastic": self.ui_val_to_bool(self.ui.checkBox_swastic.checkState().value),
+            "historical": self.ui_val_to_bool(self.ui.checkBox_historical.checkState().value),
+            "religion": self.ui_val_to_bool(self.ui.checkBox_religion.checkState().value),
+            "workers and peseants": self.ui_val_to_bool(self.ui.checkBox_workers_and_peseants.checkState().value),
+            "bourgeois": self.ui_val_to_bool(self.ui.checkBox_bourgeois.checkState().value),
+            "feminism": self.ui_val_to_bool(self.ui.checkBox_feminism.checkState().value),
+            "culture": self.ui_val_to_bool(self.ui.checkBox_culture.checkState().value),
+            "enlightenment": self.ui_val_to_bool(self.ui.checkBox_enlightment.checkState().value),
+            "minorities": self.ui_val_to_bool(self.ui.checkBox_minorities.checkState().value),
+            "muslim": self.ui_val_to_bool(self.ui.checkBox_muslim.checkState().value),
+            "pagan": self.ui_val_to_bool(self.ui.checkBox_pagan.checkState().value),
+            "ancient": self.ui_val_to_bool(self.ui.checkBox_ancient.checkState().value),
+            "nuclear": self.ui_val_to_bool(self.ui.checkBox_nuclear.checkState().value)
         }
 
         return dumps(json_dict)
