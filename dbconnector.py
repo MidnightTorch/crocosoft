@@ -59,4 +59,3 @@ def get_description_by_path(path_to_file):
             conn.commit()
             return cursor.fetchall()
 
-print(get_description_by_path('screens/1922/1/1.jpg')[0]['description'])
