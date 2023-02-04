@@ -45,3 +45,18 @@ def delete_rows_by_path_to_file(path_to_file):
             cursor.execute(sql, [path_to_file])
             conn.commit()
 
+
+def get_description_by_path(path_to_file):
+    with pymysql.connect(
+            host=dbconfig.HOST,
+            user=dbconfig.USER,
+            password=dbconfig.PASSWORD,
+            database=dbconfig.DATABASE,
+            cursorclass=pymysql.cursors.DictCursor) as conn:
+        with conn.cursor() as cursor:
+            sql = 'SELECT description FROM data  WHERE path_to_picture LIKE (%s)'
+            cursor.execute(sql, [path_to_file])
+            conn.commit()
+            return cursor.fetchall()
+
+print(get_description_by_path('screens/1922/1/1.jpg')[0]['description'])

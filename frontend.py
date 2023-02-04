@@ -1,10 +1,10 @@
 import os
 
 from PyQt6.QtGui import QPixmap
-from PyQt6.QtWidgets import QApplication, QMainWindow, QFileDialog, QWidget
+from PyQt6.QtWidgets import QApplication, QMainWindow, QFileDialog
 from designer import Ui_MainWindow
 from json import dumps
-from dbconnector import push_to_db, check_exists, delete_rows_by_path_to_file
+from dbconnector import push_to_db, check_exists, delete_rows_by_path_to_file, get_description_by_path
 from designer_confirmation_window import Ui_confirmation_window
 from designer_successful_commit import Ui_success_window
 from desigener_error_on_commit import Ui_error_while_commiting
@@ -147,6 +147,55 @@ class MainWindow(QMainWindow):
 
         return dumps(json_dict)
 
+    def try_to_fill_from_db(self):
+        formed_path_to_curr_img = 'screens' + '/' + self.curr_year + '/' + self.curr_publication + '/' + self.curr_screen
+        description_query = get_description_by_path(formed_path_to_curr_img)
+        if description_query != ():
+            description_dict = description_query[0]['description']
+
+            self.ui.lineEdit_type.setText(description_dict['type'])
+            self.ui.lineEdit_personality.setText('')
+            self.ui.lineEdit_country.setText('')
+            self.ui.lineEdit_topic.setText('')
+
+            self.ui.checkBox_ancine_regime.setChecked(False)
+            self.ui.checkBox_swastic.setChecked(False)
+            self.ui.checkBox_historical.setChecked(False)
+            self.ui.checkBox_religion.setChecked(False)
+            self.ui.checkBox_workers_and_peseants.setChecked(False)
+            self.ui.checkBox_bourgeois.setChecked(False)
+            self.ui.checkBox_feminism.setChecked(False)
+            self.ui.checkBox_culture.setChecked(False)
+            self.ui.checkBox_enlightment.setChecked(False)
+            self.ui.checkBox_minorities.setChecked(False)
+            self.ui.checkBox_muslim.setChecked(False)
+            self.ui.checkBox_pagan.setChecked(False)
+            self.ui.checkBox_ancient.setChecked(False)
+            self.ui.checkBox_nuclear.setChecked(False)
+
+
+
+    def clear_entered_data(self):
+        self.ui.checkBox_ancine_regime.setChecked(False)
+        self.ui.checkBox_swastic.setChecked(False)
+        self.ui.checkBox_historical.setChecked(False)
+        self.ui.checkBox_religion.setChecked(False)
+        self.ui.checkBox_workers_and_peseants.setChecked(False)
+        self.ui.checkBox_bourgeois.setChecked(False)
+        self.ui.checkBox_feminism.setChecked(False)
+        self.ui.checkBox_culture.setChecked(False)
+        self.ui.checkBox_enlightment.setChecked(False)
+        self.ui.checkBox_minorities.setChecked(False)
+        self.ui.checkBox_muslim.setChecked(False)
+        self.ui.checkBox_pagan.setChecked(False)
+        self.ui.checkBox_ancient.setChecked(False)
+        self.ui.checkBox_nuclear.setChecked(False)
+
+        self.ui.lineEdit_type.setText('')
+        self.ui.lineEdit_personality.setText('')
+        self.ui.lineEdit_country.setText('')
+        self.ui.lineEdit_topic.setText('')
+
     def list_existing_descriptions(self):
         curr_path = 'screens' + '/' + self.curr_year + '/' + self.curr_publication + '/' + self.curr_screen
         self.win = ErrorOnCommit()
@@ -179,14 +228,22 @@ class MainWindow(QMainWindow):
             self.success.show()
 
     def next_image(self):
-        current_publication_list = sorted(self.dir_tree[f'{self.curr_year}'][f'{self.curr_publication}'])
-        current_year_list = sorted(list(self.dir_tree[f'{self.curr_year}'].keys()))
-        list_of_years = sorted(list(self.dir_tree.keys()))
+        # check of null image
+        if self.curr_screen == '':
+            self.browser_invoker()
+            return 0
+
+        current_publication_list = sorted(self.dir_tree[f'{self.curr_year}'][f'{self.curr_publication}'],
+                                          key=lambda num: int(num.split('.')[0]))
+        current_year_list = sorted(list(self.dir_tree[f'{self.curr_year}'].keys()),
+                                   key=lambda num: int(num))
+        list_of_years = sorted(list(self.dir_tree.keys()), key=lambda num: int(num))
 
         ### case needed next_image
         if self.curr_screen != current_publication_list[-1]:
             inx_of_current_screen = current_publication_list.index(self.curr_screen)
             self.curr_screen = current_publication_list[inx_of_current_screen + 1]
+            self.clear_entered_data()
             self.draw_image()
 
         ### case current screen is the last one in the publication
@@ -195,6 +252,7 @@ class MainWindow(QMainWindow):
             self.curr_publication = current_year_list[inx_of_current_publication + 1]
             new_publication_list = sorted(self.dir_tree[f'{self.curr_year}'][f'{self.curr_publication}'])
             self.curr_screen = new_publication_list[0]
+            self.clear_entered_data()
             self.draw_image()
 
         ### case need to change year
@@ -204,21 +262,25 @@ class MainWindow(QMainWindow):
             self.curr_year = list_of_years[inx_current_year + 1]
             self.curr_publication = sorted(self.dir_tree[f'{self.curr_year}'])[0]
             self.curr_screen = sorted(self.dir_tree[f'{self.curr_year}'][f'{self.curr_publication}'])[0]
+            self.clear_entered_data()
             self.draw_image()
 
-        ### common warinig block
-        else:
-            print("Something went wrong")
 
     def previous_image(self):
-        current_publication_list = sorted(self.dir_tree[f'{self.curr_year}'][f'{self.curr_publication}'])
-        current_year_list = sorted(list(self.dir_tree[f'{self.curr_year}'].keys()))
-        list_of_years = sorted(list(self.dir_tree.keys()))
+        if self.curr_screen == '':
+            self.browser_invoker()
+            return 0
+        current_publication_list = sorted(self.dir_tree[f'{self.curr_year}'][f'{self.curr_publication}'],
+                                key = lambda num: int(num.split('.')[0]))
+        current_year_list = sorted(list(self.dir_tree[f'{self.curr_year}'].keys()),
+                                   key=lambda num: int(num))
+        list_of_years = sorted(list(self.dir_tree.keys()), key=lambda num: int(num))
 
         ### case needed rpevious image
         if self.curr_screen != current_publication_list[0]:
             inx_of_current_screen = current_publication_list.index(self.curr_screen)
             self.curr_screen = current_publication_list[inx_of_current_screen - 1]
+            self.clear_entered_data()
             self.draw_image()
 
         ### case current screen is the first one in the publication
@@ -227,6 +289,7 @@ class MainWindow(QMainWindow):
             self.curr_publication = current_year_list[inx_of_current_publication - 1]
             new_publication_list = sorted(self.dir_tree[f'{self.curr_year}'][f'{self.curr_publication}'])
             self.curr_screen = new_publication_list[-1]
+            self.clear_entered_data()
             self.draw_image()
 
         ### case need to change year
@@ -236,6 +299,7 @@ class MainWindow(QMainWindow):
             self.curr_year = list_of_years[inx_current_year - 1]
             self.curr_publication = sorted(self.dir_tree[f'{self.curr_year}'])[-1]
             self.curr_screen = sorted(self.dir_tree[f'{self.curr_year}'][f'{self.curr_publication}'])[-1]
+            self.clear_entered_data()
             self.draw_image()
 
         ### common warinig block
