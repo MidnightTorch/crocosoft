@@ -28,7 +28,7 @@ def push_to_db(json_obj, path_to_file):
 
 @connect_to_db
 def check_exists(path_to_picture):
-    sql = f'SELECT * FROM `data` WHERE `path_to_picture` LIKE (%s)'
+    sql = 'SELECT * FROM `data` WHERE `path_to_picture` LIKE (%s)'
     return sql
 
 

@@ -150,6 +150,8 @@ class MainWindow(QMainWindow):
             "personality": self.ui.lineEdit_personality.text().split(','),
             "country": self.ui.lineEdit_country.text().split(','),
             "topic": self.ui.lineEdit_topic.text(),
+
+
             "anciene_regime": self.ui_val_to_bool(self.ui.checkBox_ancine_regime.checkState().value),
             "swastic": self.ui_val_to_bool(self.ui.checkBox_swastic.checkState().value),
             "historical": self.ui_val_to_bool(self.ui.checkBox_historical.checkState().value),
@@ -163,7 +165,11 @@ class MainWindow(QMainWindow):
             "muslim": self.ui_val_to_bool(self.ui.checkBox_muslim.checkState().value),
             "pagan": self.ui_val_to_bool(self.ui.checkBox_pagan.checkState().value),
             "ancient": self.ui_val_to_bool(self.ui.checkBox_ancient.checkState().value),
-            "nuclear": self.ui_val_to_bool(self.ui.checkBox_nuclear.checkState().value)
+            "nuclear": self.ui_val_to_bool(self.ui.checkBox_nuclear.checkState().value),
+            "Red army": self.ui_val_to_bool(self.ui.checkBox_red_army.checkState().value),
+            "inner enemy": self.ui_val_to_bool(self.ui.checkBox_inner_enemy.checkState().value),
+            "soviet ally": self.ui_val_to_bool(self.ui.checkBox_soviets_ally.checkState().value),
+            "cosmos": self.ui_val_to_bool(self.ui.checkBox_cosmos.checkState().value)
         }
 
         return dumps(json_dict)
@@ -193,6 +199,10 @@ class MainWindow(QMainWindow):
             self.ui.checkBox_pagan.setChecked(description_dict['pagan'])
             self.ui.checkBox_ancient.setChecked(description_dict['ancient'])
             self.ui.checkBox_nuclear.setChecked(description_dict['nuclear'])
+            self.ui.checkBox_red_army.setChecked(description_dict['Red army'])
+            self.ui.checkBox_inner_enemy.setChecked(description_dict['inner enemy'])
+            self.ui.checkBox_soviets_ally.setChecked(description_dict['soviet ally'])
+            self.ui.checkBox_cosmos.setChecked(description_dict['cosmos'])
 
         else:
             self.clear_entered_data()
@@ -213,6 +223,10 @@ class MainWindow(QMainWindow):
         self.ui.checkBox_pagan.setChecked(False)
         self.ui.checkBox_ancient.setChecked(False)
         self.ui.checkBox_nuclear.setChecked(False)
+        self.ui.checkBox_red_army.setChecked(False)
+        self.ui.checkBox_inner_enemy.setChecked(False)
+        self.ui.checkBox_soviets_ally.setChecked(False)
+        self.ui.checkBox_cosmos.setChecked(False)
 
         self.ui.lineEdit_type.setText('')
         self.ui.lineEdit_personality.setText('')
