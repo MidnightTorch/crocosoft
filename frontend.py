@@ -1,5 +1,4 @@
 import os
-
 from PyQt6.QtGui import QPixmap
 from PyQt6.QtWidgets import QApplication, QMainWindow, QFileDialog
 from designer import Ui_MainWindow
@@ -15,7 +14,7 @@ class MultipleDescriptionsError(QMainWindow):
         super().__init__()
         self.ui = Ui_Form()
         self.ui.setupUi(self)
-        self.ui.
+
 
 class ErrorOnCommit(QMainWindow):
     def __init__(self):
@@ -48,6 +47,7 @@ class MainWindow(QMainWindow):
         ####setting up ui
         self.ui = Ui_MainWindow()
         self.ui.setupUi(self)
+        self.center()
 
         ####creating connections
 
@@ -66,11 +66,21 @@ class MainWindow(QMainWindow):
         self.dir_tree = {}
         self.create_tree_of_screens()
 
+    def center(self):
+
+        qr = self.frameGeometry()
+        cp = self.screen().availableGeometry().center()
+
+        qr.moveCenter(cp)
+        self.move(qr.topLeft())
+
+
     def browser_invoker(self):
         folder_path = QFileDialog(directory='screens')
-        self.path_to_curr_img = folder_path.getOpenFileName()[0]
-        self.get_img_props()
-        self.draw_image()
+        if folder_path.getOpenFileName()[0] != '':
+            self.path_to_curr_img = folder_path.getOpenFileName()[0]
+            self.get_img_props()
+            self.draw_image()
 
 
 
@@ -102,10 +112,17 @@ class MainWindow(QMainWindow):
             print(e)
             self.error_win = ErrorOnCommit()
             self.error_win.ui.error_log.setText(str(e))
+            error_win_geometry = self.error_win.geometry()
+            error_win_geometry.moveCenter(self.geometry().center())
+            self.error_win.setGeometry(error_win_geometry)
             self.error_win.show()
         else:
             self.success = SuccessfulCommitWindow()
+            success_geometry = self.success.geometry()
+            success_geometry.moveCenter(self.geometry().center())
+            self.success.setGeometry(success_geometry)
             self.success.show()
+
         finally:
             self.conf_win.close()
 
@@ -115,6 +132,9 @@ class MainWindow(QMainWindow):
         self.conf_win.ui.markup_displayer.setText(output)
         self.conf_win.ui.commit_button.pressed.connect(self.commit)
         self.conf_win.ui.redo_button.pressed.connect(self.conf_win.close)
+        conf_win_geometry = self.conf_win.geometry()
+        conf_win_geometry.moveCenter(self.geometry().center())
+        self.conf_win.setGeometry(conf_win_geometry)
         self.conf_win.show()
 
     def ui_val_to_bool(self, val):
@@ -202,6 +222,9 @@ class MainWindow(QMainWindow):
     def list_existing_descriptions(self):
         curr_path = 'screens' + '/' + self.curr_year + '/' + self.curr_publication + '/' + self.curr_screen
         self.win = ErrorOnCommit()
+        win_geometry = self.win.geometry()
+        win_geometry.moveCenter(self.geometry().center())
+        self.win.setGeometry(win_geometry)
         self.win.ui.label.setText('List of existing descriptions in the db:')
         try:
             str_of_descriptions = str(check_exists(curr_path))
@@ -222,12 +245,18 @@ class MainWindow(QMainWindow):
             self.multiple_descriptions_error_win.ui.check_descriptions.pressed.connect(self.list_existing_descriptions)
             self.multiple_descriptions_error_win.ui.quit_warning_window.pressed.connect(
                 self.multiple_descriptions_error_win.close)
+            multiple_descriptions_error_win_geometry = self.multiple_descriptions_error_win.geometry()
+            multiple_descriptions_error_win_geometry.moveCenter(self.geometry().center())
+            self.multiple_descriptions_error_win.setGeometry(multiple_descriptions_error_win_geometry)
             self.multiple_descriptions_error_win.show()
 
         else:
             self.success = SuccessfulCommitWindow()
             self.success.ui.label.setText('NO DESCRIPTIONS FOUND, YOU CAN PROCEED')
             self.success.setWindowTitle('NO DESCRIPTIONS')
+            success_geometry = self.success.geometry()
+            success_geometry.moveCenter(self.geometry().center())
+            self.success.setGeometry(success_geometry)
             self.success.show()
 
     def next_image(self):
