@@ -1,6 +1,6 @@
 import os
 from PyQt6.QtGui import QPixmap
-from PyQt6.QtWidgets import QApplication, QMainWindow, QFileDialog
+from PyQt6.QtWidgets import QApplication, QMainWindow, QFileDialog, QCompleter
 from designer import Ui_MainWindow
 from json import dumps, loads
 from dbconnector import push_to_db, check_exists, delete_rows_by_path_to_file, get_description_by_path
@@ -39,7 +39,6 @@ class ConfirmationWindow(QMainWindow):
         self.ui.setupUi(self)
 
 
-
 class MainWindow(QMainWindow):
     def __init__(self):
         super().__init__()
@@ -56,6 +55,7 @@ class MainWindow(QMainWindow):
         self.ui.button_next.pressed.connect(self.next_image)
         self.ui.button_previous.pressed.connect(self.previous_image)
         self.ui.button_check_described.pressed.connect(self.check_multiple_description)
+        self.ui.pushButton_delete_image.pressed.connect(self.delete_image)
 
         ####setting up variables
 
@@ -63,14 +63,22 @@ class MainWindow(QMainWindow):
         self.curr_year = ''
         self.curr_publication = ''
         self.curr_screen = ''
+        self.flag_removed_image = False
         self.dir_tree = {}
         self.create_tree_of_screens()
+    @staticmethod
+    def delete_wrapper(func):
+        def wrapper(*args, **kwargs):
+            self = args[0]
+            if self.flag_removed_image:
+                self.create_tree_of_screens()
+            return func(*args, **kwargs)
+        return wrapper
 
+### plagiat
     def center(self):
-
         qr = self.frameGeometry()
         cp = self.screen().availableGeometry().center()
-
         qr.moveCenter(cp)
         self.move(qr.topLeft())
 
@@ -81,7 +89,6 @@ class MainWindow(QMainWindow):
             self.path_to_curr_img = folder_path.getOpenFileName()[0]
             self.get_img_props()
             self.draw_image()
-
 
 
     def draw_image(self):
@@ -150,7 +157,6 @@ class MainWindow(QMainWindow):
             "personality": self.ui.lineEdit_personality.text().split(','),
             "country": self.ui.lineEdit_country.text().split(','),
             "topic": self.ui.lineEdit_topic.text(),
-
 
             "anciene_regime": self.ui_val_to_bool(self.ui.checkBox_ancine_regime.checkState().value),
             "swastic": self.ui_val_to_bool(self.ui.checkBox_swastic.checkState().value),
@@ -273,6 +279,7 @@ class MainWindow(QMainWindow):
             self.success.setGeometry(success_geometry)
             self.success.show()
 
+    @delete_wrapper
     def next_image(self):
         # check of null image
         if self.curr_screen == '':
@@ -358,6 +365,28 @@ class MainWindow(QMainWindow):
                         self.dir_tree[f'{year}'][f'{publication}'].append(screen)
                     else:
                         self.dir_tree[f'{year}'][f'{publication}'] = [screen]
+
+
+    def delete_image(self):
+        conf_win = ConfirmationWindow()
+        conf_win.ui.markup_displayer.setText('')
+        conf_win.ui.label.setText('Do you really want to delete the image?')
+        conf_win.ui.commit_button.setText('Delete')
+        conf_win.ui.redo_button.setText('Back')
+        conf_win.ui.commit_button.pressed.connect(self.remove_image)
+        conf_win.ui.redo_button.pressed.connect(conf_win.close)
+        conf_win_geometry = conf_win.geometry()
+        conf_win_geometry.moveCenter(self.geometry().center())
+        conf_win.setGeometry(conf_win_geometry)
+        conf_win.show()
+
+
+#### not exception handled, I suppose its useless
+    def remove_image(self):
+        curr_path = os.path.join('screens', self.curr_year, self.curr_publication, self.curr_screen)
+        os.remove(curr_path)
+        delete_rows_by_path_to_file(curr_path)
+        self.flag_removed_image = True
 
 
 app = QApplication([])

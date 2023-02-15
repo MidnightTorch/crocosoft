@@ -208,6 +208,9 @@ class Ui_MainWindow(object):
         self.checkBox_cosmos = QtWidgets.QCheckBox(self.centralwidget)
         self.checkBox_cosmos.setGeometry(QtCore.QRect(1470, 550, 101, 20))
         self.checkBox_cosmos.setObjectName("checkBox_cosmos")
+        self.pushButton_delete_image = QtWidgets.QPushButton(self.centralwidget)
+        self.pushButton_delete_image.setGeometry(QtCore.QRect(1050, 60, 171, 91))
+        self.pushButton_delete_image.setObjectName("pushButton_delete_image")
         MainWindow.setCentralWidget(self.centralwidget)
 
         self.retranslateUi(MainWindow)
@@ -247,3 +250,4 @@ class Ui_MainWindow(object):
         self.checkBox_inner_enemy.setText(_translate("MainWindow", "inner enemy"))
         self.checkBox_soviets_ally.setText(_translate("MainWindow", "soviets ally"))
         self.checkBox_cosmos.setText(_translate("MainWindow", "cosmos"))
+        self.pushButton_delete_image.setText(_translate("MainWindow", "PushButton"))

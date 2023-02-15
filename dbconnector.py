@@ -1,7 +1,6 @@
 import pymysql.cursors
 from dbconfig import *
 
-#### SELECT * FROM data WHERE NOT JSON_CONTAINS(description, "\"\"", '$.personality');
 
 def connect_to_db(func):
     def wrapper(*args, **kwargs):
@@ -42,3 +41,5 @@ def delete_rows_by_path_to_file(path_to_file):
 def get_description_by_path(path_to_file):
     sql = 'SELECT description FROM data  WHERE path_to_picture LIKE (%s)'
     return sql
+
+
