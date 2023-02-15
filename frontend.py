@@ -66,14 +66,8 @@ class MainWindow(QMainWindow):
         self.flag_removed_image = False
         self.dir_tree = {}
         self.create_tree_of_screens()
-    @staticmethod
-    def delete_wrapper(func):
-        def wrapper(*args, **kwargs):
-            self = args[0]
-            if self.flag_removed_image:
-                self.create_tree_of_screens()
-            return func(*args, **kwargs)
-        return wrapper
+
+
 
 ### plagiat
     def center(self):
@@ -279,7 +273,7 @@ class MainWindow(QMainWindow):
             self.success.setGeometry(success_geometry)
             self.success.show()
 
-    @delete_wrapper
+
     def next_image(self):
         # check of null image
         if self.curr_screen == '':
@@ -298,6 +292,9 @@ class MainWindow(QMainWindow):
             self.curr_screen = current_publication_list[inx_of_current_screen + 1]
             self.try_to_fill_from_db()
             self.draw_image()
+            if self.flag_removed_image == True:
+                self.create_tree_of_screens()
+                self.flag_removed_image = False
 
         ### case current screen is the last one in the publication
         elif self.curr_screen == current_publication_list[-1] and self.curr_publication != current_year_list[-1]:
@@ -307,6 +304,9 @@ class MainWindow(QMainWindow):
             self.curr_screen = new_publication_list[0]
             self.try_to_fill_from_db()
             self.draw_image()
+            if self.flag_removed_image == True:
+                self.create_tree_of_screens()
+                self.flag_removed_image = False
 
         ### case need to change year
         elif self.curr_screen == current_publication_list[-1] and self.curr_publication == current_year_list[-1] and \
@@ -317,6 +317,9 @@ class MainWindow(QMainWindow):
             self.curr_screen = sorted(self.dir_tree[f'{self.curr_year}'][f'{self.curr_publication}'])[0]
             self.try_to_fill_from_db()
             self.draw_image()
+            if self.flag_removed_image == True:
+                self.create_tree_of_screens()
+                self.flag_removed_image = False
 
 
     def previous_image(self):
@@ -335,6 +338,9 @@ class MainWindow(QMainWindow):
             self.curr_screen = current_publication_list[inx_of_current_screen - 1]
             self.try_to_fill_from_db()
             self.draw_image()
+            if self.flag_removed_image == True:
+                self.create_tree_of_screens()
+                self.flag_removed_image = False
 
         ### case current screen is the first one in the publication
         elif self.curr_screen == current_publication_list[0] and self.curr_publication != current_year_list[0]:
@@ -344,6 +350,9 @@ class MainWindow(QMainWindow):
             self.curr_screen = new_publication_list[-1]
             self.try_to_fill_from_db()
             self.draw_image()
+            if self.flag_removed_image == True:
+                self.create_tree_of_screens()
+                self.flag_removed_image = False
 
         ### case need to change year
         elif self.curr_screen == current_publication_list[0] and self.curr_publication == current_year_list[0] and \
@@ -354,6 +363,9 @@ class MainWindow(QMainWindow):
             self.curr_screen = sorted(self.dir_tree[f'{self.curr_year}'][f'{self.curr_publication}'])[-1]
             self.try_to_fill_from_db()
             self.draw_image()
+            if self.flag_removed_image == True:
+                self.create_tree_of_screens()
+                self.flag_removed_image = False
 
 
     def create_tree_of_screens(self):
@@ -368,25 +380,43 @@ class MainWindow(QMainWindow):
 
 
     def delete_image(self):
-        conf_win = ConfirmationWindow()
-        conf_win.ui.markup_displayer.setText('')
-        conf_win.ui.label.setText('Do you really want to delete the image?')
-        conf_win.ui.commit_button.setText('Delete')
-        conf_win.ui.redo_button.setText('Back')
-        conf_win.ui.commit_button.pressed.connect(self.remove_image)
-        conf_win.ui.redo_button.pressed.connect(conf_win.close)
-        conf_win_geometry = conf_win.geometry()
+        self.conf_win = ConfirmationWindow()
+        self.conf_win.ui.markup_displayer.setText('')
+        self.conf_win.ui.label.setText('Do you really want to delete the image?')
+        self.conf_win.ui.commit_button.setText('Delete')
+        self.conf_win.ui.redo_button.setText('Back')
+        self.conf_win.ui.commit_button.pressed.connect(self.remove_image)
+        self.conf_win.ui.redo_button.pressed.connect(self.conf_win.close)
+        conf_win_geometry = self.conf_win.geometry()
         conf_win_geometry.moveCenter(self.geometry().center())
-        conf_win.setGeometry(conf_win_geometry)
-        conf_win.show()
+        self.conf_win.setGeometry(conf_win_geometry)
+        self.conf_win.show()
 
 
-#### not exception handled, I suppose its useless
     def remove_image(self):
+        self.conf_win.close()
+        self.success = SuccessfulCommitWindow()
+        self.success.ui.label.setText('THE IMAGE HAS BEEN SUCCESSFULLY DELETED')
+        self.success.setWindowTitle('SUCCESS!')
+        success_geometry = self.success.geometry()
+        success_geometry.moveCenter(self.geometry().center())
+        self.success.setGeometry(success_geometry)
+
         curr_path = os.path.join('screens', self.curr_year, self.curr_publication, self.curr_screen)
-        os.remove(curr_path)
-        delete_rows_by_path_to_file(curr_path)
-        self.flag_removed_image = True
+        try:
+            os.remove(curr_path)
+            if len(check_exists(curr_path)) != 0:
+                curr_path = 'screens' + '/' + self.curr_year + '/' + self.curr_publication + '/' + self.curr_screen
+                delete_rows_by_path_to_file(curr_path)
+
+        except Exception:
+            self.success.ui.label.setText('SOME ERROR OCCURED!')
+            self.success.setWindowTitle('ERROR!')
+            self.success.show()
+        else:
+            delete_rows_by_path_to_file(curr_path)
+            self.flag_removed_image = True
+            self.success.show()
 
 
 app = QApplication([])
