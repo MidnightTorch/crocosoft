@@ -3,7 +3,8 @@ from PyQt6.QtGui import QPixmap
 from PyQt6.QtWidgets import QApplication, QMainWindow, QFileDialog, QCompleter
 from designer import Ui_MainWindow
 from json import dumps, loads
-from dbconnector import push_to_db, check_exists, delete_rows_by_path_to_file, get_description_by_path
+from dbconnector import push_to_db, check_exists, delete_rows_by_path_to_file, get_description_by_path, \
+    get_json_col_for_completer
 from designer_confirmation_window import Ui_confirmation_window
 from designer_successful_commit import Ui_success_window
 from desigener_error_on_commit import Ui_error_while_commiting
@@ -57,6 +58,17 @@ class MainWindow(QMainWindow):
         self.ui.button_check_described.pressed.connect(self.check_multiple_description)
         self.ui.pushButton_delete_image.pressed.connect(self.delete_image)
 
+
+        self.word_bank_personality = self.
+        self.completer = QtWidgets.QCompleter(word_bank)
+        self.completer.setCaseSensitivity(
+            QtCore.Qt.CaseSensitivity.CaseInsensitive)
+        self.completer.setFilterMode(QtCore.Qt.MatchFlag.MatchContains)
+        self.completer.setWidget(self.edit)
+        self.completer.activated.connect(self.handleCompletion)
+        self.edit.textChanged.connect(self.handleTextChanged)
+        self._completing = False
+
         ####setting up variables
 
         self.path_to_curr_img = ''
@@ -67,6 +79,29 @@ class MainWindow(QMainWindow):
         self.dir_tree = {}
         self.create_tree_of_screens()
 
+
+
+
+def handleTextChanged(self, text):
+    if not self._completing:
+        found = False
+        prefix = text.rpartition(',')[-1]
+        if len(prefix) > 1:
+            self.completer.setCompletionPrefix(prefix)
+            if self.completer.currentRow() >= 0:
+                found = True
+        if found:
+            self.completer.complete()
+        else:
+            self.completer.popup().hide()
+
+
+def handleCompletion(self, text):
+    if not self._completing:
+        self._completing = True
+        prefix = self.completer.completionPrefix()
+        self.edit.setText(self.edit.text()[:-len(prefix)] + text)
+        self._completing = False
 
 
 ### plagiat
@@ -417,6 +452,18 @@ class MainWindow(QMainWindow):
             delete_rows_by_path_to_file(curr_path)
             self.flag_removed_image = True
             self.success.show()
+
+    def get_list_for_completer(self, json_col):
+        str_to_remove = '"[] '
+        res_list = []
+        for returned_val in get_json_col_for_completer(json_col):
+            vals_to_list = list(returned_val.values())[0]
+            for to_remove_elem in vals_to_list:
+                if to_remove_elem in str_to_remove:
+                    vals_to_list = vals_to_list.replace(to_remove_elem, '')
+            res_list.append(vals_to_list.split(','))
+
+        return res_list
 
 
 app = QApplication([])
