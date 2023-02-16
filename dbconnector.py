@@ -1,5 +1,4 @@
 import pymysql.cursors
-from dbconfig import *
 
 #### SELECT * FROM data WHERE NOT JSON_CONTAINS(description, "\"\"", '$.personality');
 
