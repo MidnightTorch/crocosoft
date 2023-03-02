@@ -10,6 +10,7 @@ from designer_successful_commit import Ui_success_window
 from desigener_error_on_commit import Ui_error_while_commiting
 from designer_multiple_description_warning import Ui_Form
 
+
 class MultipleDescriptionsError(QMainWindow):
     def __init__(self):
         super().__init__()
@@ -22,7 +23,6 @@ class ErrorOnCommit(QMainWindow):
         super().__init__()
         self.ui = Ui_error_while_commiting()
         self.ui.setupUi(self)
-
 
 
 class SuccessfulCommitWindow(QMainWindow):
@@ -59,15 +59,18 @@ class MainWindow(QMainWindow):
         self.ui.pushButton_delete_image.pressed.connect(self.delete_image)
 
 
-        self.word_bank_personality = self.
-        self.completer = QtWidgets.QCompleter(word_bank)
-        self.completer.setCaseSensitivity(
-            QtCore.Qt.CaseSensitivity.CaseInsensitive)
-        self.completer.setFilterMode(QtCore.Qt.MatchFlag.MatchContains)
-        self.completer.setWidget(self.edit)
-        self.completer.activated.connect(self.handleCompletion)
-        self.edit.textChanged.connect(self.handleTextChanged)
-        self._completing = False
+        self.completer_personality = QCompleter(self.get_list_for_completer('personality'))
+        self.ui.lineEdit_personality.setCompleter(self.completer_personality)
+        self.ui.lineEdit_personality.textChanged.connect(self.handle_completion)
+
+
+        # self.completer_personality = QCompleter(self.word_bank_personality)
+        # self.completer.setCaseSensitivity(Qt.CaseSensitivity.CaseInsensitive)
+        # self.completer.setFilterMode(Qt.MatchFlag.MatchContains)
+        # self.completer.setWidget(self.edit)
+        # self.completer.activated.connect(self.handleCompletion)
+        # self.edit.textChanged.connect(self.handleTextChanged)
+        # self._completing = False
 
         ####setting up variables
 
@@ -80,31 +83,35 @@ class MainWindow(QMainWindow):
         self.create_tree_of_screens()
 
 
+    def handle_completion(self, entered_data):
+        if ',' in entered_data:
+            prefix = entered_data.rpartition(',')[-1]
+            self.completer_personality.setCompletionPrefix(prefix)
+            print(self.completer_personality.completionPrefix())
 
 
-def handleTextChanged(self, text):
-    if not self._completing:
-        found = False
-        prefix = text.rpartition(',')[-1]
-        if len(prefix) > 1:
-            self.completer.setCompletionPrefix(prefix)
-            if self.completer.currentRow() >= 0:
-                found = True
-        if found:
-            self.completer.complete()
-        else:
-            self.completer.popup().hide()
+    # def handleTextChanged(self, text):
+    #     if not self._completing:
+    #         found = False
+    #         prefix = text.rpartition(',')[-1]
+    #         if len(prefix) > 1:
+    #             self.completer.setCompletionPrefix(prefix)
+    #             if self.completer.currentRow() >= 0:
+    #                 found = True
+    #         if found:
+    #             self.completer.complete()
+    #         else:
+    #             self.completer.popup().hide()
+    #
+    #
+    # def handleCompletion(self, text):
+    #     if not self._completing:
+    #         self._completing = True
+    #         prefix = self.completer.completionPrefix()
+    #         self.edit.setText(self.edit.text()[:-len(prefix)] + text)
+    #         self._completing = False
 
 
-def handleCompletion(self, text):
-    if not self._completing:
-        self._completing = True
-        prefix = self.completer.completionPrefix()
-        self.edit.setText(self.edit.text()[:-len(prefix)] + text)
-        self._completing = False
-
-
-### plagiat
     def center(self):
         qr = self.frameGeometry()
         cp = self.screen().availableGeometry().center()
@@ -461,7 +468,7 @@ def handleCompletion(self, text):
             for to_remove_elem in vals_to_list:
                 if to_remove_elem in str_to_remove:
                     vals_to_list = vals_to_list.replace(to_remove_elem, '')
-            res_list.append(vals_to_list.split(','))
+            [res_list.append(i) for i in vals_to_list.split(',')]
 
         return res_list
 
