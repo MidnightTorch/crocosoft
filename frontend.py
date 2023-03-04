@@ -58,11 +58,7 @@ class MainWindow(QMainWindow):
         self.ui.button_check_described.pressed.connect(self.check_multiple_description)
         self.ui.pushButton_delete_image.pressed.connect(self.delete_image)
 
-
-        self.completer_personality = QCompleter(self.get_list_for_completer('personality'))
-        self.ui.lineEdit_personality.setCompleter(self.completer_personality)
-        self.ui.lineEdit_personality.textChanged.connect(self.handle_completion)
-
+        self.init_completers()
 
         # self.completer_personality = QCompleter(self.word_bank_personality)
         # self.completer.setCaseSensitivity(Qt.CaseSensitivity.CaseInsensitive)
@@ -83,11 +79,7 @@ class MainWindow(QMainWindow):
         self.create_tree_of_screens()
 
 
-    def handle_completion(self, entered_data):
-        if ',' in entered_data:
-            prefix = entered_data.rpartition(',')[-1]
-            self.completer_personality.setCompletionPrefix(prefix)
-            print(self.completer_personality.completionPrefix())
+
 
 
     # def handleTextChanged(self, text):
@@ -111,6 +103,16 @@ class MainWindow(QMainWindow):
     #         self.edit.setText(self.edit.text()[:-len(prefix)] + text)
     #         self._completing = False
 
+    def init_completers(self):
+        self.completer_personality = QCompleter(self.get_list_for_completer('personality'))
+        self.completer_type = QCompleter(self.get_list_for_completer('type'))
+        self.completer_topic = QCompleter(self.get_list_for_completer('topic'))
+        self.completer_country = QCompleter(self.get_list_for_completer('country'))
+
+        self.ui.lineEdit_personality.setCompleter(self.completer_personality)
+        self.ui.lineEdit_type.setCompleter(self.completer_type)
+        self.ui.lineEdit_topic.setCompleter(self.completer_topic)
+        self.ui.lineEdit_country.setCompleter(self.completer_country)
 
     def center(self):
         qr = self.frameGeometry()
@@ -165,6 +167,7 @@ class MainWindow(QMainWindow):
             success_geometry.moveCenter(self.geometry().center())
             self.success.setGeometry(success_geometry)
             self.success.show()
+            self.init_completers()
 
         finally:
             self.conf_win.close()
@@ -461,7 +464,7 @@ class MainWindow(QMainWindow):
             self.success.show()
 
     def get_list_for_completer(self, json_col):
-        str_to_remove = '"[] '
+        str_to_remove = '"[]'
         res_list = []
         for returned_val in get_json_col_for_completer(json_col):
             vals_to_list = list(returned_val.values())[0]
