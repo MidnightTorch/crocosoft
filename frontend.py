@@ -60,13 +60,6 @@ class MainWindow(QMainWindow):
 
         self.init_completers()
 
-        # self.completer_personality = QCompleter(self.word_bank_personality)
-        # self.completer.setCaseSensitivity(Qt.CaseSensitivity.CaseInsensitive)
-        # self.completer.setFilterMode(Qt.MatchFlag.MatchContains)
-        # self.completer.setWidget(self.edit)
-        # self.completer.activated.connect(self.handleCompletion)
-        # self.edit.textChanged.connect(self.handleTextChanged)
-        # self._completing = False
 
         ####setting up variables
 
@@ -79,29 +72,6 @@ class MainWindow(QMainWindow):
         self.create_tree_of_screens()
 
 
-
-
-
-    # def handleTextChanged(self, text):
-    #     if not self._completing:
-    #         found = False
-    #         prefix = text.rpartition(',')[-1]
-    #         if len(prefix) > 1:
-    #             self.completer.setCompletionPrefix(prefix)
-    #             if self.completer.currentRow() >= 0:
-    #                 found = True
-    #         if found:
-    #             self.completer.complete()
-    #         else:
-    #             self.completer.popup().hide()
-    #
-    #
-    # def handleCompletion(self, text):
-    #     if not self._completing:
-    #         self._completing = True
-    #         prefix = self.completer.completionPrefix()
-    #         self.edit.setText(self.edit.text()[:-len(prefix)] + text)
-    #         self._completing = False
 
     def init_completers(self):
         self.completer_personality = QCompleter(self.get_list_for_completer('personality'))
@@ -196,6 +166,8 @@ class MainWindow(QMainWindow):
             "personality": self.ui.lineEdit_personality.text().split(','),
             "country": self.ui.lineEdit_country.text().split(','),
             "topic": self.ui.lineEdit_topic.text(),
+            "author": self.ui.lineEdit_author.text(),
+            "text from picture": self.ui.textEdit_text_from_picture.text(),
 
             "anciene_regime": self.ui_val_to_bool(self.ui.checkBox_ancine_regime.checkState().value),
             "swastic": self.ui_val_to_bool(self.ui.checkBox_swastic.checkState().value),
@@ -229,6 +201,10 @@ class MainWindow(QMainWindow):
             self.ui.lineEdit_personality.setText(','.join(description_dict['personality']))
             self.ui.lineEdit_country.setText(','.join(description_dict['country']))
             self.ui.lineEdit_topic.setText(description_dict['topic'])
+            if 'author' in description_dict.keys():
+                self.ui.lineEdit_author.setText(description_dict['author'])
+            if 'text from picture' in description_dict.keys():
+                self.ui.textEdit_text_from_picture.setText(description_dict['text from picture'])
 
             self.ui.checkBox_ancine_regime.setChecked(description_dict['anciene_regime'])
             self.ui.checkBox_swastic.setChecked(description_dict['swastic'])
@@ -277,6 +253,8 @@ class MainWindow(QMainWindow):
         self.ui.lineEdit_personality.setText('')
         self.ui.lineEdit_country.setText('')
         self.ui.lineEdit_topic.setText('')
+        self.ui.textEdit_text_from_picture.setText('')
+        self.ui.lineEdit_author.setText('')
 
     def list_existing_descriptions(self):
         curr_path = 'screens' + '/' + self.curr_year + '/' + self.curr_publication + '/' + self.curr_screen
